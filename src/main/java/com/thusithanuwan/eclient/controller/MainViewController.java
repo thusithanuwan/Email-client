@@ -2,20 +2,26 @@ package com.thusithanuwan.eclient.controller;
 
 import com.thusithanuwan.eclient.model.EmailMessageBean;
 import com.thusithanuwan.eclient.model.SampleData;
+import com.thusithanuwan.eclient.util.Singleton;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.ResourceBundle;
@@ -45,11 +51,16 @@ public class MainViewController {
     @FXML
     private TableColumn<EmailMessageBean, String> sizeCol;
 
+
+    /*---------------------------------------------------------------------------------------*/
+
     SampleData sampleData = new SampleData();
 
     private MenuItem showDetails = new MenuItem("show details");
 
+    private Singleton singleton = Singleton.getInstance();
 
+    /*----------------------------------------------------------------------------------------*/
 
 
     public void initialize() {
@@ -132,9 +143,7 @@ public class MainViewController {
 
     }
 
-/*
-     Load item from tree view when we clicked on tree view option
-*/
+     /* ! Load item from tree view when we clicked on tree view option*/
     public void treeViewOnMouseClicked(MouseEvent mouseEvent) {
 
         TreeItem<String>  selectedItem = (TreeItem<String>) emailFolderTreeView.getSelectionModel().getSelectedItem();
@@ -142,18 +151,32 @@ public class MainViewController {
             emailTableVIew.setItems(sampleData.emailFolders.get(selectedItem.getValue()));
         }
     }
-/*
-     Load from email table to messageRender
-*/
+     /* ! Load from email table to messageRender*/
     public void emailTableViewOnMouseClicked(MouseEvent mouseEvent) {
         EmailMessageBean message = emailTableVIew.getSelectionModel().getSelectedItem();
         if (message != null){
             messageRender.getEngine().loadContent(message.getMessage());
+            /* ! 9-Use Singleton design pattern to pass message to EmailDetailViewController */
+            singleton.setMessage(message);
+
         }
     }
 
 
     public void contextMenuSetOnAction(ActionEvent actionEvent) {
+
         System.out.println((((MenuItem)actionEvent.getTarget()).getText()));
+
+
+        Stage stage = new Stage();
+        FXMLLoader fxmlLoader = new FXMLLoader(this.getClass().getResource("/view/EmailDetailsView.fxml"));
+        try {
+            AnchorPane root =  fxmlLoader.load();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
